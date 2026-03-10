@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMAH — Study Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f6f8;
+  --white: #ffffff;
+  --border: #e3e7ed;
+  --border-d: #c8cfd9;
+  --text: #1a2033;
+  --text2: #4a5568;
+  --text3: #8a95a8;
+  --blue: #2563eb;
+  --blue-bg: #eff4ff;
+  --blue-bd: #dbeafe;
+  --green: #16a34a;
+  --green-bg: #f0fdf4;
+  --green-bd: #bbf7d0;
+  --orange: #ea580c;
+  --orange-bg: #fff7ed;
+  --orange-bd: #fed7aa;
+  --red: #dc2626;
+  --red-bg: #fef2f2;
+  --red-bd: #fecaca;
+  --purple: #7c3aed;
+  --purple-bg: #f5f3ff;
+  --purple-bd: #ddd6fe;
+  --r: 10px;
+  --sh: 0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;}
+.wrap{max-width:760px;margin:0 auto;padding:2rem 1.2rem 4rem;}
+
+/* Header */
+header{padding:2rem 0 1.8rem;}
+.hbadge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd);
+  font-size:.7rem;font-weight:500;padding:.28rem .75rem;border-radius:100px;
+  margin-bottom:.9rem;font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;
+}
+h1{font-size:1.6rem;font-weight:600;margin-bottom:.35rem;}
+.hsub{color:var(--text3);font-size:.8rem;}
+
+/* Agents */
+.agents{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.8rem;}
+.ach{display:flex;align-items:center;gap:.4rem;padding:.28rem .7rem;border-radius:6px;font-size:.72rem;font-weight:500;border:1px solid;}
+.ach-ml{background:var(--red-bg);border-color:var(--red-bd);color:var(--red);}
+.ach-ns{background:var(--purple-bg);border-color:var(--purple-bd);color:var(--purple);}
+.ach-ag{background:var(--green-bg);border-color:var(--green-bd);color:var(--green);}
+.adot{width:6px;height:6px;border-radius:50%;animation:blink 2s infinite;}
+.ach-ml .adot{background:var(--red);}
+.ach-ns .adot{background:var(--purple);animation-delay:.4s;}
+.ach-ag .adot{background:var(--green);animation-delay:.8s;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* Steps nav */
+.snav{display:flex;align-items:center;margin-bottom:1.8rem;}
+.sdot{display:flex;flex-direction:column;align-items:center;gap:.3rem;}
+.snum{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border-d);background:var(--white);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:600;transition:all .25s;font-family:'IBM Plex Mono',monospace;}
+.sdot.active .snum{border-color:var(--blue);background:var(--blue);color:#fff;}
+.sdot.done .snum{border-color:var(--green);background:var(--green);color:#fff;}
+.slbl{font-size:.62rem;color:var(--text3);white-space:nowrap;}
+.sdot.active .slbl{color:var(--blue);font-weight:500;}
+.sdot.done .slbl{color:var(--green);}
+.sline{flex:1;height:1px;background:var(--border);margin-bottom:1.05rem;min-width:24px;}
+
+/* Card */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.5rem;box-shadow:var(--sh);margin-bottom:1rem;display:none;}
+.card.active{display:block;animation:fadeup .3s ease;}
+@keyframes fadeup{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+.slabel{display:flex;align-items:center;gap:.45rem;font-size:.68rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1.1rem;padding-bottom:.65rem;border-bottom:1px solid var(--border);}
+.slabel svg{color:var(--blue);flex-shrink:0;}
+
+/* Field */
+.field{margin-bottom:.9rem;}
+.field label{display:flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:500;color:var(--text2);margin-bottom:.4rem;}
+.field label svg{color:var(--text3);}
+.inp{width:100%;padding:.58rem .8rem;background:var(--white);border:1px solid var(--border-d);border-radius:7px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+.inp:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.09);}
+.fhint{font-size:.7rem;color:var(--text3);margin-top:.3rem;}
+
+/* State */
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;}
+.sopt{padding:.85rem .5rem;border-radius:8px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;text-align:center;transition:all .2s;color:var(--text2);}
+.sopt:hover{border-color:var(--blue);}
+.sopt.active{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);}
+.sopt .ico{margin-bottom:.35rem;display:flex;justify-content:center;}
+.sopt .lbl{font-size:.78rem;font-weight:500;}
+
+/* Summary */
+.sumrow{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:1.3rem;}
+.sumbox{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.8rem;text-align:center;}
+.sumval{font-size:1.4rem;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.sumlbl{font-size:.65rem;color:var(--text3);margin-top:.2rem;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;}
+th{font-size:.65rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:.45rem .75rem;text-align:left;border-bottom:1.5px solid var(--border);}
+td{padding:.55rem .75rem;font-size:.82rem;border-bottom:1px solid var(--bg);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg);}
+.nval{font-family:'IBM Plex Mono',monospace;color:var(--blue);font-weight:500;}
+.cval{font-family:'IBM Plex Mono',monospace;color:var(--purple);}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.18rem .55rem;border-radius:5px;font-size:.7rem;font-weight:500;border:1px solid;}
+.badge-red{background:var(--red-bg);border-color:var(--red-bd);color:var(--red);}
+.badge-orange{background:var(--orange-bg);border-color:var(--orange-bd);color:var(--orange);}
+.badge-green{background:var(--green-bg);border-color:var(--green-bd);color:var(--green);}
+
+/* Comp grid */
+.crow{display:grid;grid-template-columns:1fr 68px 55px 85px 95px;gap:.6rem;align-items:center;padding:.55rem .75rem;border-radius:7px;border:1px solid var(--border);margin-bottom:.35rem;background:var(--white);transition:border-color .2s;}
+.crow:hover{border-color:var(--border-d);}
+.cname{font-size:.8rem;font-weight:500;}
+.cdiff{font-size:.7rem;font-family:'IBM Plex Mono',monospace;text-align:center;}
+.ccoef{font-size:.7rem;font-family:'IBM Plex Mono',monospace;text-align:center;color:var(--purple);}
+.cinp{width:100%;padding:.32rem .45rem;text-align:center;border:1px solid var(--border-d);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--text);outline:none;transition:border-color .2s;}
+.cinp:focus{border-color:var(--blue);}
+
+/* Buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:.45rem;width:100%;padding:.65rem 1rem;border:none;border-radius:8px;font-family:'IBM Plex Sans',sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-p{background:var(--blue);color:#fff;margin-top:1.1rem;}
+.btn-p:hover{background:#1d4ed8;}
+.btn-s{background:var(--white);color:var(--text2);border:1px solid var(--border);margin-top:.5rem;}
+.btn-s:hover{border-color:var(--border-d);}
+
+/* Processing */
+#processing{display:none;}
+#processing.active{display:block;}
+.procwrap{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.8rem;box-shadow:var(--sh);max-width:400px;margin:0 auto;}
+.proctitle{font-weight:600;font-size:.88rem;margin-bottom:1.1rem;text-align:center;color:var(--text2);}
+.pstep{display:flex;align-items:center;gap:.75rem;padding:.6rem .85rem;border-radius:7px;border:1px solid var(--border);margin-bottom:.4rem;opacity:0;transform:translateX(-8px);transition:all .35s;font-size:.79rem;color:var(--text2);}
+.pstep.vis{opacity:1;transform:translateX(0);}
+.pstep svg{color:var(--blue);flex-shrink:0;}
+
+/* Results */
+#results{display:none;}
+#results.active{display:block;}
+
+/* Exp card */
+.expcard{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--purple);border-radius:var(--r);padding:1.3rem;box-shadow:var(--sh);margin-bottom:1rem;}
+.exprule{display:flex;gap:.65rem;align-items:flex-start;font-size:.79rem;color:var(--text2);padding:.4rem 0;border-bottom:1px solid var(--bg);}
+.exprule:last-child{border-bottom:none;}
+.exprule svg{color:var(--purple);flex-shrink:0;margin-top:2px;}
+
+/* Priority */
+.prirow{display:grid;grid-template-columns:26px 1fr 55px 75px;gap:.65rem;align-items:center;padding:.5rem .65rem;border-radius:7px;background:var(--bg);margin-bottom:.3rem;}
+.prinum{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--text3);text-align:center;}
+.priname{font-size:.79rem;font-weight:500;}
+.priscore{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--blue);text-align:right;}
+.pribar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.prifill{height:100%;background:var(--blue);border-radius:2px;transition:width .8s ease;}
+
+/* Day cards */
+.daycard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:.9rem;overflow:hidden;animation:fadeup .4s ease forwards;opacity:0;}
+.dayhead{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.1rem;border-bottom:1px solid var(--border);background:var(--bg);}
+.dayname{font-weight:600;font-size:.86rem;}
+.daymeta{font-size:.68rem;color:var(--text3);margin-top:.12rem;}
+.loadpill{font-size:.67rem;font-weight:500;padding:.22rem .6rem;border-radius:100px;border:1px solid;}
+.ll{background:var(--green-bg);border-color:var(--green-bd);color:var(--green);}
+.lm{background:var(--orange-bg);border-color:var(--orange-bd);color:var(--orange);}
+.lh{background:var(--red-bg);border-color:var(--red-bd);color:var(--red);}
+
+.sesswrap{padding:.55rem;}
+.sess{display:grid;grid-template-columns:58px 1fr auto;gap:.65rem;align-items:start;padding:.6rem .7rem;border-radius:7px;border-left:3px solid;margin-bottom:.3rem;background:var(--bg);}
+.stime{font-family:'IBM Plex Mono',monospace;font-size:.67rem;color:var(--text3);line-height:1.5;}
+.sname{font-size:.81rem;font-weight:600;margin-bottom:.28rem;display:flex;align-items:center;gap:.3rem;}
+.stags{display:flex;gap:.3rem;flex-wrap:wrap;}
+.stag{font-size:.63rem;font-weight:500;padding:.13rem .42rem;border-radius:4px;border:1px solid;}
+.stag-c{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue);}
+.stag-g{background:var(--orange-bg);border-color:var(--orange-bd);color:var(--orange);}
+.stag-p{background:var(--purple-bg);border-color:var(--purple-bd);color:var(--purple);}
+.stag-a{background:var(--red-bg);border-color:var(--red-bd);color:var(--red);}
+.sdur{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--text3);white-space:nowrap;padding-top:2px;}
+
+.dayfoot{padding:.45rem 1.1rem;font-size:.7rem;color:var(--text3);border-top:1px solid var(--border);background:var(--bg);text-align:right;font-family:'IBM Plex Mono',monospace;}
+
+.restartbtn{display:flex;align-items:center;justify-content:center;gap:.4rem;margin:1.4rem auto 0;padding:.55rem 1.3rem;background:var(--white);border:1px solid var(--border);border-radius:7px;color:var(--text2);font-size:.78rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:'IBM Plex Sans',sans-serif;}
+.restartbtn:hover{border-color:var(--blue);color:var(--blue);}
+
+@media(max-width:540px){
+  .crow{grid-template-columns:1fr 75px 90px;}
+  .cdiff,.ccoef{display:none;}
+  .sumrow{grid-template-columns:1fr 1fr;}
+  .sess{grid-template-columns:52px 1fr;}
+  .sdur{display:none;}
+}
+
+/* ── Trace Documentation ────────────────────────────── */
+.trace-wrap{margin-top:2rem;}
+.trace-header{
+  display:flex;align-items:center;gap:.6rem;
+  padding:1rem 1.3rem;background:var(--white);
+  border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--sh);cursor:pointer;user-select:none;
+  transition:border-color .2s;
+}
+.trace-header:hover{border-color:var(--border-d);}
+.trace-header-left{display:flex;align-items:center;gap:.6rem;flex:1;}
+.trace-badge{
+  display:inline-flex;align-items:center;gap:.35rem;
+  background:#fefce8;border:1px solid #fde68a;
+  color:#92400e;font-size:.68rem;font-weight:600;
+  padding:.22rem .6rem;border-radius:5px;
+  font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;
+}
+.trace-title{font-size:.86rem;font-weight:600;}
+.trace-sub{font-size:.72rem;color:var(--text3);margin-top:.1rem;}
+.trace-toggle{color:var(--text3);transition:transform .3s;flex-shrink:0;}
+.trace-toggle.open{transform:rotate(180deg);}
+.trace-body{display:none;margin-top:.6rem;}
+.trace-body.open{display:block;}
+
+.tsection{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:var(--r);padding:1.2rem;box-shadow:var(--sh);
+  margin-bottom:.8rem;
+}
+.tsection-head{
+  display:flex;align-items:center;gap:.5rem;
+  font-size:.7rem;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.07em;
+  padding-bottom:.65rem;margin-bottom:.9rem;
+  border-bottom:1px solid var(--border);
+}
+.tsection-head svg{flex-shrink:0;}
+.agent-ml-clr{color:var(--red);}
+.agent-ns-clr{color:var(--purple);}
+.agent-ag-clr{color:var(--green);}
+
+.tformule{
+  background:#f8fafc;border:1px solid var(--border);
+  border-radius:7px;padding:.6rem .85rem;
+  font-family:'IBM Plex Mono',monospace;font-size:.75rem;
+  color:var(--blue);margin-bottom:.9rem;
+}
+
+.tcalc-row{
+  display:grid;grid-template-columns:1fr auto;
+  gap:.5rem;align-items:start;padding:.45rem .6rem;
+  border-radius:6px;background:var(--bg);margin-bottom:.3rem;font-size:.79rem;
+}
+.tcalc-name{font-weight:500;}
+.tcalc-right{text-align:right;}
+.tcalc-score{font-family:'IBM Plex Mono',monospace;color:var(--blue);font-weight:600;font-size:.8rem;}
+.tcalc-detail{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--text3);margin-top:.1rem;}
+
+.trule-row{
+  padding:.5rem .6rem;border-radius:6px;margin-bottom:.3rem;font-size:.79rem;
+  border-left:3px solid;
+}
+.trule-applied{background:#f0fdf4;border-color:var(--green);}
+.trule-skipped{background:#fafafa;border-color:var(--border);}
+.trule-name{font-weight:600;margin-bottom:.2rem;display:flex;align-items:center;gap:.4rem;}
+.trule-cond{font-size:.7rem;font-family:'IBM Plex Mono',monospace;color:var(--text3);margin-bottom:.2rem;}
+.trule-action{font-size:.75rem;color:var(--text2);}
+.trule-skip-reason{font-size:.72rem;color:var(--text3);font-style:italic;}
+
+.tagg-jour{margin-bottom:.9rem;}
+.tagg-jour-title{font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;padding:.3rem .5rem;background:var(--bg);border-radius:5px;}
+.tdec-row{padding:.4rem .6rem;border-radius:6px;background:var(--bg);margin-bottom:.25rem;font-size:.78rem;}
+.tdec-mat{font-weight:600;margin-bottom:.15rem;display:flex;align-items:center;gap:.4rem;}
+.tdec-just{font-size:.71rem;color:var(--text3);font-family:'IBM Plex Mono',monospace;}
+.tdec-source{font-size:.65rem;padding:.1rem .35rem;border-radius:4px;border:1px solid;font-weight:600;}
+.src-ml{background:var(--red-bg);border-color:var(--red-bd);color:var(--red);}
+.src-ns{background:var(--purple-bg);border-color:var(--purple-bd);color:var(--purple);}
+.src-both{background:var(--blue-bg);border-color:var(--blue-bd);color:var(--blue);}
+.src-agg{background:var(--orange-bg);border-color:var(--orange-bd);color:var(--orange);}
+
+.tconflict{
+  background:#fff7ed;border:1px solid var(--orange-bd);
+  border-radius:6px;padding:.5rem .7rem;font-size:.77rem;margin-bottom:.3rem;
+}
+.tconflict-title{font-weight:600;color:var(--orange);margin-bottom:.2rem;}
+.tcoherence{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.3rem .7rem;border-radius:6px;font-size:.75rem;font-weight:500;
+  background:var(--green-bg);border:1px solid var(--green-bd);color:var(--green);
+}
+
+.day-tabs{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.8rem;}
+.day-tab{
+  padding:.28rem .7rem;border-radius:6px;font-size:.72rem;
+  font-weight:500;border:1px solid var(--border);
+  background:var(--white);color:var(--text3);cursor:pointer;transition:all .15s;
+}
+.day-tab.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.day-tab:hover:not(.active){border-color:var(--border-d);}
+.day-panel{display:none;}
+.day-panel.active{display:block;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hbadge">SMAH v2.0 — Système Multi-Agents Hybride</div>
+  <h1>Study Planner Intelligent</h1>
+  <p class="hsub">Goal-driven · Agent ML + Neuro-Symbolique · Explicable</p>
+</header>
+
+<div class="agents">
+  <div class="ach ach-ml"><div class="adot"></div>Agent ML Classique</div>
+  <div class="ach ach-ns"><div class="adot"></div>Agent Neuro-Symbolique</div>
+  <div class="ach ach-ag"><div class="adot"></div>Module d'Agrégation</div>
+</div>
+
+<div class="snav">
+  <div class="sdot active" id="sd1"><div class="snum">1</div><div class="slbl">Objectif</div></div>
+  <div class="sline"></div>
+  <div class="sdot" id="sd2"><div class="snum">2</div><div class="slbl">Résultats</div></div>
+  <div class="sline"></div>
+  <div class="sdot" id="sd3"><div class="snum">3</div><div class="slbl">Compréhension</div></div>
+  <div class="sline"></div>
+  <div class="sdot" id="sd4"><div class="snum">4</div><div class="slbl">Plan</div></div>
+</div>
+
+<!-- STEP 1 -->
+<div class="card active" id="step1">
+  <div class="slabel">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    Définir les objectifs
+  </div>
+  <div class="field">
+    <label>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Moyenne générale — semestre précédent (/20)
+    </label>
+    <input class="inp" type="number" id="moy-prec" min="0" max="20" step="0.5" placeholder="ex: 11.5">
+    <div class="fhint">Utilisée comme référence pour mesurer ta progression</div>
+  </div>
+  <div class="field">
+    <label>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Moyenne cible ce semestre (/20)
+    </label>
+    <input class="inp" type="number" id="moy-cible" min="0" max="20" step="0.5" placeholder="ex: 15">
+    <div class="fhint">Le SMAH calcule la note requise dans chaque matière</div>
+  </div>
+  <button class="btn btn-p" onclick="goStep2()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    Calculer les objectifs par matière
+  </button>
+</div>
+
+<!-- STEP 2 -->
+<div class="card" id="step2">
+  <div class="slabel">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Objectifs calculés par matière
+  </div>
+  <div class="sumrow" id="moy-summary"></div>
+  <table id="obj-table" style="margin-bottom:1.3rem;"></table>
+
+  <div class="slabel" style="margin-top:.3rem;">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    État physique aujourd'hui
+  </div>
+  <div class="srow">
+    <div class="sopt" onclick="selectState('fatigue')" id="btn-fatigue">
+      <div class="ico">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      </div>
+      <div class="lbl">Fatigué(e)</div>
+    </div>
+    <div class="sopt active" onclick="selectState('normal')" id="btn-normal">
+      <div class="ico">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </div>
+      <div class="lbl">Normal</div>
+    </div>
+    <div class="sopt" onclick="selectState('energique')" id="btn-energique">
+      <div class="ico">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div class="lbl">Énergique</div>
+    </div>
+  </div>
+
+  <button class="btn btn-p" onclick="goStep3()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    Continuer
+  </button>
+  <button class="btn btn-s" onclick="goCard('step1','sd1')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour
+  </button>
+</div>
+
+<!-- STEP 3 -->
+<div class="card" id="step3">
+  <div class="slabel">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    Niveau de compréhension par matière
+  </div>
+  <p style="font-size:.77rem;color:var(--text3);margin-bottom:.9rem;">1 = tout compris &nbsp;·&nbsp; 10 = rien compris</p>
+  <div style="display:grid;grid-template-columns:1fr 68px 55px 85px 95px;gap:.6rem;padding:.35rem .75rem;margin-bottom:.25rem;">
+    <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Matière</span>
+    <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;text-align:center;">Diff.</span>
+    <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;text-align:center;">Coeff</span>
+    <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;text-align:center;">Compréh.</span>
+    <span style="font-size:.62rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;">Effort</span>
+  </div>
+  <div id="comp-grid"></div>
+  <button class="btn btn-p" style="margin-top:.9rem;" onclick="generatePlan()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Générer mon plan de révision
+  </button>
+  <button class="btn btn-s" onclick="goCard('step2','sd2')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Retour
+  </button>
+</div>
+
+<!-- Processing -->
+<div id="processing">
+  <div class="procwrap">
+    <div class="proctitle">Agents en cours de traitement...</div>
+    <div class="pstep" id="ps1">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Agent ML calcule les scores multi-facteurs...
+    </div>
+    <div class="pstep" id="ps2">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Agent Neuro-Symbolique applique les règles...
+    </div>
+    <div class="pstep" id="ps3">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Alignement avec l'objectif de moyenne...
+    </div>
+    <div class="pstep" id="ps4">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Module d'Agrégation résout les conflits...
+    </div>
+    <div class="pstep" id="ps5">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Plan de révision généré avec explications !
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="results">
+
+  <div class="card active" style="display:block;">
+    <div class="slabel">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Récapitulatif des objectifs
+    </div>
+    <table id="obj-result-table"></table>
+  </div>
+
+  <div class="expcard">
+    <div class="slabel" style="color:var(--purple);border-color:var(--purple-bd);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Explication — Agent Neuro-Symbolique
+    </div>
+    <div id="exp-content"></div>
+  </div>
+
+  <div class="card active" style="display:block;">
+    <div class="slabel">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Classement des priorités — Agent ML
+    </div>
+    <div id="pri-list"></div>
+  </div>
+
+  <div class="slabel">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Planning de révision journalier
+  </div>
+  <div id="days-wrap"></div>
+
+  <button class="restartbtn" onclick="restart()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.51"/></svg>
+    Recommencer
+  </button>
+</div>
+
+
+  <!-- Trace Documentation -->
+  <div id="trace-doc" class="trace-wrap" style="display:none;"></div>
+
+</div>
+<script>
+const MATIERES=[
+  {nom:"Anglais Spécifique",difficulte:1,coeff:1.0},
+  {nom:"Complexité des algorithmes",difficulte:4,coeff:1.5},
+  {nom:"Méthodologie de recherche",difficulte:5,coeff:1.5},
+  {nom:"Apprentissage automatique",difficulte:10,coeff:2.0},
+  {nom:"Systèmes multi-agents",difficulte:11,coeff:2.0},
+  {nom:"Parallélisme",difficulte:13,coeff:2.0},
+  {nom:"Architecture Multi Tiers",difficulte:15,coeff:1.5},
+  {nom:"Développement Web",difficulte:17,coeff:1.5},
+  {nom:"Modélisation & Graphes",difficulte:18,coeff:1.5},
+  {nom:"Indexation & Images",difficulte:19,coeff:1.5},
+];
+const EDT={
+  "Lundi":["Anglais Spécifique","Complexité des algorithmes","Modélisation & Graphes"],
+  "Mardi":["Architecture Multi Tiers","Systèmes multi-agents"],
+  "Mercredi":["Parallélisme","Indexation & Images"],
+  "Jeudi":["Méthodologie de recherche","Développement Web"],
+  "Vendredi":["Apprentissage automatique"],
+  "Samedi":[],
+};
+const HEURES={Lundi:3,Mardi:2.5,Mercredi:3,Jeudi:2,Vendredi:3.5,Samedi:4};
+const RETOUR={Lundi:"13h00",Mardi:"15h30",Mercredi:"13h00",Jeudi:"17h00",Vendredi:"13h00",Samedi:"08h00"};
+const TCOEFF=MATIERES.reduce((s,m)=>s+m.coeff,0);
+let etat='normal',moyP=0,moyC=0,notes=[];
+
+function goCard(cid,sid){document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));document.getElementById(cid).classList.add('active');updSteps(sid);}
+function updSteps(aid){const o=['sd1','sd2','sd3','sd4'],i=o.indexOf(aid);o.forEach((id,j)=>{const e=document.getElementById(id);e.classList.remove('active','done');if(j<i)e.classList.add('done');else if(j===i)e.classList.add('active');});}
+
+function goStep2(){
+  moyP=parseFloat(document.getElementById('moy-prec').value);
+  moyC=parseFloat(document.getElementById('moy-cible').value);
+  if(isNaN(moyP)||isNaN(moyC)||moyP<0||moyP>20||moyC<0||moyC>20){alert('Valeurs entre 0 et 20 !');return;}
+  notes=calcNotes(MATIERES,moyC,moyP);
+  const g=moyC-moyP;
+  document.getElementById('moy-summary').innerHTML=`
+    <div class="sumbox"><div class="sumval" style="color:var(--text3)">${moyP}/20</div><div class="sumlbl">Semestre précédent</div></div>
+    <div class="sumbox"><div class="sumval" style="color:var(--blue)">${moyC}/20</div><div class="sumlbl">Objectif cible</div></div>
+    <div class="sumbox"><div class="sumval" style="color:${g>0?'var(--green)':'var(--orange)'}">${g>0?'+':''}${g.toFixed(1)}</div><div class="sumlbl">Progression visée</div></div>`;
+  document.getElementById('obj-table').innerHTML=`<thead><tr><th>Matière</th><th>Coeff</th><th>Note cible</th><th>Effort requis</th></tr></thead><tbody>${notes.map(m=>`<tr><td>${m.nom}</td><td><span class="cval">×${m.coeff}</span></td><td><span class="nval">${m.nc}/20</span></td><td><span class="badge ${m.ec}">${m.ef}</span></td></tr>`).join('')}</tbody>`;
+  goCard('step2','sd2');
+}
+
+function calcNotes(ms,mc,mp){
+  return ms.map(m=>{
+    const nc=Math.max(10,Math.min(19,Math.round(mc*(1-(m.difficulte/20)*0.4)*(1+m.coeff/10)*10)/10));
+    // gap = points manquants entre note cible et moyenne actuelle
+    const gap=Math.max(0,Math.round((nc-mp)*10)/10);
+    const comp=m.comprehension||5;
+    const es=(m.difficulte/20)*(comp/10);
+    const ef=es>0.5?'Élevé':es>0.25?'Moyen':'Faible';
+    const ec=es>0.5?'badge-red':es>0.25?'badge-orange':'badge-green';
+    return {...m,nc,gap,ef,ec,es};
+  });
+}
+
+function selectState(s){etat=s;['fatigue','normal','energique'].forEach(x=>document.getElementById('btn-'+x).classList.toggle('active',x===s));}
+
+function effortBadge(d,c){const s=(d/20)*(c/10);const cl=s>0.5?'badge-red':s>0.25?'badge-orange':'badge-green';const l=s>0.5?'Élevé':s>0.25?'Moyen':'Faible';return `<span class="badge ${cl}">${l}</span>`;}
+function updEffort(i){const c=parseInt(document.getElementById('c-'+i).value)||5;document.getElementById('ef-'+i).innerHTML=effortBadge(notes[i].difficulte,c);}
+function dcolor(d){if(d<=5)return'#ef4444';if(d<=10)return'#f97316';if(d<=15)return'#2563eb';return'#16a34a';}
+
+function goStep3(){
+  document.getElementById('comp-grid').innerHTML=notes.map((m,i)=>`
+    <div class="crow">
+      <span class="cname">${m.nom}</span>
+      <span class="cdiff" style="color:${dcolor(m.difficulte)}">${m.difficulte}/20</span>
+      <span class="ccoef">×${m.coeff}</span>
+      <input class="cinp" type="number" id="c-${i}" min="1" max="10" value="5" oninput="updEffort(${i})" title="1=tout compris · 10=rien compris">
+      <span id="ef-${i}">${effortBadge(m.difficulte,5)}</span>
+    </div>`).join('');
+  goCard('step3','sd3');
+}
+
+// ── GLOBAL TRACE OBJECT ──────────────────────────────────
+let TRACE = {};
+
+function agentML(ms){
+  const traceML = {
+    agent: 'Agent ML Classique',
+    role: 'Calcul du score de priorité multi-facteurs pour chaque matière',
+    formule: 'score = difficulté × coeff × facteur_compréhension × facteur_gap',
+    details: []
+  };
+  const result = ms.map(m=>{
+    const fc=Math.round((1+(m.comprehension-1)/10)*100)/100;
+    const fg=Math.round((1+m.gap/20)*100)/100;
+    const score=Math.round(m.difficulte*m.coeff*fc*fg*100)/100;
+    traceML.details.push({
+      matiere: m.nom,
+      calcul: `${m.difficulte} × ${m.coeff} × ${fc} × ${fg}`,
+      score,
+      explication: `diff=${m.difficulte}/20, coeff=×${m.coeff}, comp=${m.comprehension}/10→fc=${fc}, gap=${m.gap}→fg=${fg}`
+    });
+    return {...m,score};
+  }).sort((a,b)=>b.score-a.score);
+  traceML.classement = result.map((m,i)=>({rang:i+1,matiere:m.nom,score:m.score}));
+  TRACE.agentML = traceML;
+  return result;
+}
+
+function agentNS(ml,et,jour){
+  let mats=[...ml];
+  const reglesAppliquees=[], reglesNonAppliquees=[], cj=EDT[jour]||[];
+  const avant = mats.map(m=>m.nom); // ordre avant NS
+
+  if(et==='fatigue'){
+    const avantFiltrage=mats.length;
+    mats=mats.filter(m=>m.difficulte<=15).slice(0,3);
+    const f=mats.filter(m=>m.difficulte<=8),mo=mats.filter(m=>m.difficulte>8);
+    const ord=[];let fi=0,mi=0,t=true;
+    while(fi<f.length||mi<mo.length){if(t&&fi<f.length)ord.push({...f[fi++],dm:40});else if(mi<mo.length)ord.push({...mo[mi++],dm:35});else if(fi<f.length)ord.push({...f[fi++],dm:40});t=!t;}
+    mats=ord.length?ord:mats.map(m=>({...m,dm:35}));
+    reglesAppliquees.push({regle:'R1 — État fatigué',condition:'état == fatigué',action:`${avantFiltrage} matières → filtrées à MAX 3, diff≤15, alternance facile↔moyen, durée 35-40min`,impact:'Filtrage + réordonnancement'});
+  }else if(et==='energique'){
+    mats=[...mats].sort((a,b)=>b.difficulte-a.difficulte).slice(0,4).map(m=>({...m,dm:m.difficulte>15?75:60}));
+    reglesAppliquees.push({regle:'R1 — État énergique',condition:'état == énergique',action:'MAX 4 matières, tri par difficulté décroissante, durée 60-75min',impact:'Réordonnancement + durée augmentée'});
+  }else{
+    const top=mats.slice(0,3),d=top.filter(m=>m.difficulte>13),mo=top.filter(m=>m.difficulte>7&&m.difficulte<=13),f=top.filter(m=>m.difficulte<=7);
+    mats=[...mo,...d,...f].map(m=>({...m,dm:55}));
+    reglesAppliquees.push({regle:'R1 — État normal',condition:'état == normal',action:'MAX 3 matières, ordre: moyen→difficile→facile, durée 55min',impact:'Réordonnancement warm-up cognitif'});
+  }
+
+  // R2 compréhension
+  const avantR2=mats.map(m=>m.nom);
+  let r2touches=[];
+  mats=mats.map(m=>{
+    if(m.comprehension>=8){r2touches.push(m.nom);return{...m,dm:(m.dm||60)+15,al:'Compréhension très faible'};}
+    return{...m,al:''};
+  });
+  if(r2touches.length) reglesAppliquees.push({regle:'R2 — Compréhension faible',condition:'compréhension ≥ 8/10',action:`+15 min pour: ${r2touches.join(', ')}`,impact:'Durée augmentée'});
+  else reglesNonAppliquees.push({regle:'R2 — Compréhension faible',raison:'Aucune matière avec compréhension ≥ 8/10'});
+
+  // R3 gap critique
+  // R3: gap critique = matière difficile (diff≥8) + gap>3 OU toute matière avec gap>5
+  const cr=mats.filter(m=>(m.gap>5&&m.difficulte>=8)||(m.gap>3&&m.difficulte>=12)),no=mats.filter(m=>!((m.gap>5&&m.difficulte>=8)||(m.gap>3&&m.difficulte>=12)));
+  if(cr.length){mats=[...cr,...no];reglesAppliquees.push({regle:'R3 — Gap critique',condition:'gap > 3 et difficulté ≥ 12, ou gap > 5 et difficulté ≥ 8',action:`Remontée prioritaire: ${cr.map(m=>m.nom).join(', ')}`,impact:'Réordonnancement priorité absolue'});}
+  else reglesNonAppliquees.push({regle:'R3 — Gap critique',raison:'Aucune matière difficile avec gap critique'});
+
+  // R4 cours du jour
+  if(cj.length){
+    const boosted=[];
+    mats=mats.map(m=>{if(cj.includes(m.nom)){boosted.push(m.nom);return{...m,boost:1.4};}return{...m,boost:1.0};});
+    mats.sort((a,b)=>b.score*(b.boost||1)-a.score*(a.boost||1));
+    if(boosted.length) reglesAppliquees.push({regle:'R4 — Cours du jour',condition:`matière ∈ cours de ${jour}`,action:`Boost ×1.4 appliqué à: ${boosted.join(', ')}`,impact:'Score effectif augmenté → remontée dans l\'ordre'});
+  } else reglesNonAppliquees.push({regle:'R4 — Cours du jour',raison:`Pas de cours programmé le ${jour}`});
+
+  // R5 anglais
+  reglesAppliquees.push({regle:'R5 — Anglais quotidien',condition:"matière == 'Anglais Spécifique'",action:'Session courte 20 min, placée en premier',impact:'Durée fixe, priorité de placement'});
+
+  // R6 coeff
+  mats=mats.map(m=>({...m,ph:m.coeff>=2.0}));
+  const highCoeff=mats.filter(m=>m.ph).map(m=>m.nom);
+  reglesAppliquees.push({regle:'R6 — Coefficient élevé',condition:'coeff ≥ 2.0',action:`Marquage priorité haute ⭐ pour: ${highCoeff.join(', ')}`,impact:'Badge visuel + signal utilisateur'});
+
+  const apres=mats.map(m=>m.nom);
+  const reordonné = JSON.stringify(avant.slice(0,apres.length))!==JSON.stringify(apres);
+
+  const traceNS = {
+    agent:'Agent Neuro-Symbolique',
+    role:'Ajustement contextuel par règles SI/ALORS',
+    jour,
+    etat:et,
+    ordreAvantNS: avant,
+    ordreApresNS: apres,
+    reordonné,
+    reglesAppliquees,
+    reglesNonAppliquees
+  };
+  if(!TRACE.agentNS) TRACE.agentNS={};
+  TRACE.agentNS[jour]=traceNS;
+
+  const rules=reglesAppliquees.map(r=>({t:`${r.regle}: ${r.action}`}));
+  return{mats,rules,traceNS};
+}
+
+function modAgg(ns,hd,jour){
+  const ss=[];let h=hd,t=19*60;const u=new Set();
+  const decisions=[], conflits=[];
+
+  const ang=ns.mats.find(m=>m.nom==="Anglais Spécifique");
+  if(ang){
+    ss.push(mk(ang,20,t));
+    decisions.push({matiere:ang.nom,duree:20,source:'R5-NS',justification:'Règle Anglais quotidien → placement prioritaire fixe 20min'});
+    t+=30;h-=20/60;u.add(ang.nom);
+  }
+
+  for(const m of ns.mats){
+    if(u.has(m.nom))continue;if(h<=0.3)break;
+    const dMax=m.dm||60;
+    const dDisp=Math.round(Math.min(dMax,h*60)/5)*5;
+    if(dDisp<20)break;
+
+    let source='ML+NS', just='';
+    const mlRang = TRACE.agentML?.classement?.findIndex(x=>x.matiere===m.nom)+1 || '?';
+    const nsModifié = ns.traceNS?.reglesAppliquees?.some(r=>r.action.includes(m.nom));
+
+    if(dDisp < dMax){
+      conflits.push({matiere:m.nom,probleme:`Durée souhaitée ${dMax}min > temps disponible → réduite à ${dDisp}min`,resolution:'Agrégation: contrainte temps > préférence durée'});
+      source='AGG-contrainte';
+      just=`ML rank#${mlRang}, NS ajusté durée, Agrégation contraint à ${dDisp}min (temps restant: ${Math.round(h*60)}min)`;
+    } else {
+      just=`ML rank#${mlRang} (score=${m.score?.toFixed(1)})${nsModifié?' + NS: '+ns.traceNS?.reglesAppliquees?.filter(r=>r.action.includes(m.nom)).map(r=>r.regle).join(', '):''}`;
+    }
+
+    ss.push(mk(m,dDisp,t));
+    decisions.push({matiere:m.nom,duree:dDisp,source,justification:just});
+    t+=dDisp+10;h-=dDisp/60;u.add(m.nom);
+  }
+
+  if(!TRACE.aggregation) TRACE.aggregation={};
+  TRACE.aggregation[jour]={
+    jour,
+    role:'Fusion décisions ML + NS, gestion contraintes temps',
+    heuresDisponibles:hd,
+    heuresUtilisées:Math.round((hd - h)*100)/100,
+    decisions,
+    conflits,
+    coherence: conflits.length===0 ? '✓ Aucun conflit détecté' : `${conflits.length} conflit(s) résolu(s)`
+  };
+
+  return ss;
+}
+function mk(m,dur,hm){return{nom:m.nom,dur,h:`${Math.floor(hm/60)}h${(hm%60).toString().padStart(2,'0')}`,diff:m.difficulte,score:m.score||0,comp:m.comprehension,nc:m.nc,gap:m.gap,ef:m.ef,ec:m.ec,ph:m.ph||false,al:m.al||''};}
+
+function generatePlan(){
+  const ms=notes.map((m,i)=>{const v=parseInt(document.getElementById('c-'+i).value)||5;return{...m,comprehension:Math.min(10,Math.max(1,v))};});
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('processing').classList.add('active');
+  document.getElementById('results').classList.remove('active');
+  ['ps1','ps2','ps3','ps4','ps5'].forEach((id,i)=>setTimeout(()=>document.getElementById(id).classList.add('vis'),i*600));
+  setTimeout(()=>{document.getElementById('processing').classList.remove('active');buildResults(ms);document.getElementById('results').classList.add('active');updSteps('sd4');},3500);
+}
+
+function buildResults(ms){
+  TRACE={};
+  const ml=agentML(ms),mx=ml[0].score;
+  document.getElementById('obj-result-table').innerHTML=`<thead><tr><th>Matière</th><th>Compréh.</th><th>Note cible</th><th>Effort</th></tr></thead><tbody>${ms.map(m=>`<tr><td>${m.nom}</td><td><span class="cval">${m.comprehension}/10</span></td><td><span class="nval">${m.nc}/20</span></td><td><span class="badge ${m.ec}">${m.ef}</span></td></tr>`).join('')}</tbody>`;
+  document.getElementById('pri-list').innerHTML=ml.map((m,i)=>`<div class="prirow"><span class="prinum">#${i+1}</span><span class="priname">${m.nom}</span><span class="priscore">${m.score.toFixed(1)}</span><div class="pribar"><div class="prifill" style="width:${(m.score/mx*100).toFixed(0)}%"></div></div></div>`).join('');
+
+  let rules=null;
+  document.getElementById('days-wrap').innerHTML=Object.keys(HEURES).map((jour,idx)=>{
+    const ns=agentNS(ml,etat,jour);if(!rules)rules=ns.rules;
+    const ss=modAgg(ns,HEURES[jour],jour),tot=ss.reduce((s,x)=>s+x.dur,0);
+    const lc=tot<90?'ll':tot<150?'lm':'lh',ll=tot<90?'Léger':tot<150?'Modéré':'Intensif';
+    const cours=(EDT[jour]||[]).join(', ')||'Aucun';
+    const sHTML=ss.map(s=>`<div class="sess" style="border-left-color:${dcolor(s.diff)}">
+      <div class="stime">${s.h}<br><span style="color:${dcolor(s.diff)};font-weight:500">${s.dur}m</span></div>
+      <div>
+        <div class="sname">${s.nom}${s.ph?` <svg width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`:''}</div>
+        <div class="stags">
+          <span class="stag stag-c">cible ${s.nc}/20</span>
+          <span class="stag stag-g">gap ${s.gap}</span>
+          <span class="stag stag-p">compréh. ${s.comp}/10</span>
+          ${s.al?`<span class="stag stag-a">${s.al}</span>`:''}
+        </div>
+      </div>
+      <div class="sdur">${Math.floor(s.dur/60)}h${(s.dur%60).toString().padStart(2,'0')}</div>
+    </div>`).join('');
+    return `<div class="daycard" style="animation-delay:${idx*.08}s">
+      <div class="dayhead"><div><div class="dayname">${jour}</div><div class="daymeta">Retour: ${RETOUR[jour]} · Cours: ${cours}</div></div><span class="loadpill ${lc}">${ll} · ${Math.floor(tot/60)}h${(tot%60).toString().padStart(2,'0')}</span></div>
+      <div class="sesswrap">${sHTML}</div>
+      <div class="dayfoot">Total: ${Math.floor(tot/60)}h${(tot%60).toString().padStart(2,'0')} de révision</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('exp-content').innerHTML=(rules||[]).map(r=>`<div class="exprule"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg><span>${r.t}</span></div>`).join('');
+
+  // Render trace documentation
+  setTimeout(()=>renderTrace(),100);
+}
+
+
+function srcBadge(src){
+  if(src==='R5-NS') return '<span class="tdec-source src-ns">NS</span>';
+  if(src==='AGG-contrainte') return '<span class="tdec-source src-agg">AGG</span>';
+  if(src.includes('NS')&&src.includes('ML')) return '<span class="tdec-source src-both">ML+NS</span>';
+  return '<span class="tdec-source src-ml">ML</span>';
+}
+
+function renderTrace(){
+  const td=document.getElementById('trace-doc');
+  if(!td) return;
+  td.style.display='block';
+
+  // ── Agent ML section ──
+  const tML=TRACE.agentML||{};
+  const mlRows=(tML.details||[]).map(d=>`
+    <div class="tcalc-row">
+      <div><div class="tcalc-name">${d.matiere}</div><div class="tcalc-detail">${d.calcul}</div></div>
+      <div class="tcalc-right"><div class="tcalc-score">${d.score}</div><div class="tcalc-detail">${d.explication}</div></div>
+    </div>`).join('');
+
+  // ── Agent NS section (tabs par jour) ──
+  const jours=Object.keys(HEURES);
+  const nsTabs=jours.map((j,i)=>`<div class="day-tab ${i===0?'active':''}" onclick="switchTab('ns',${i},'${j}')">${j}</div>`).join('');
+  const nsPanels=jours.map((j,i)=>{
+    const tr=TRACE.agentNS?.[j]||{};
+    const appRows=(tr.reglesAppliquees||[]).map(r=>`
+      <div class="trule-row trule-applied">
+        <div class="trule-name">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          ${r.regle}
+        </div>
+        <div class="trule-cond">SI ${r.condition}</div>
+        <div class="trule-action">→ ${r.action} <span style="color:var(--text3)">· Impact: ${r.impact}</span></div>
+      </div>`).join('');
+    const skipRows=(tr.reglesNonAppliquees||[]).map(r=>`
+      <div class="trule-row trule-skipped">
+        <div class="trule-name" style="color:var(--text3)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          ${r.regle}
+        </div>
+        <div class="trule-skip-reason">Non déclenchée: ${r.raison}</div>
+      </div>`).join('');
+    const ordre=tr.reordonné
+      ? `<div style="font-size:.72rem;color:var(--orange);margin-bottom:.6rem;">⚠️ Ordre modifié par NS: [${(tr.ordreAvantNS||[]).slice(0,3).join(', ')}...] → [${(tr.ordreApresNS||[]).join(', ')}]</div>`
+      : `<div style="font-size:.72rem;color:var(--green);margin-bottom:.6rem;">✓ Ordre ML conservé par NS</div>`;
+    return `<div class="day-panel ${i===0?'active':''}" id="ns-panel-${j}">
+      ${ordre}${appRows}${skipRows||'<div style="font-size:.78rem;color:var(--text3);">Toutes les règles ont été évaluées.</div>'}
+    </div>`;
+  }).join('');
+
+  // ── Agrégation section (tabs par jour) ──
+  const aggTabs=jours.map((j,i)=>`<div class="day-tab ${i===0?'active':''}" onclick="switchTab('agg',${i},'${j}')">${j}</div>`).join('');
+  const aggPanels=jours.map((j,i)=>{
+    const tr=TRACE.aggregation?.[j]||{};
+    const decRows=(tr.decisions||[]).map(d=>`
+      <div class="tdec-row">
+        <div class="tdec-mat">${srcBadge(d.source)} ${d.matiere} <span style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--text3)">${d.duree}min</span></div>
+        <div class="tdec-just">${d.justification}</div>
+      </div>`).join('');
+    const conflictRows=(tr.conflits||[]).map(cf=>`
+      <div class="tconflict">
+        <div class="tconflict-title">⚠ Conflit: ${cf.matiere}</div>
+        <div>${cf.probleme}</div>
+        <div style="color:var(--green);margin-top:.2rem;">→ ${cf.resolution}</div>
+      </div>`).join('');
+    return `<div class="day-panel ${i===0?'active':''}" id="agg-panel-${j}">
+      <div style="font-size:.75rem;color:var(--text2);margin-bottom:.6rem;">Heures utilisées: <span style="font-family:'IBM Plex Mono',monospace;color:var(--blue)">${tr.heuresUtilisées||0}h / ${tr.heuresDisponibles||0}h disponibles</span></div>
+      ${decRows}
+      ${conflictRows}
+      <div style="margin-top:.6rem;"><span class="tcoherence"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>${tr.coherence||''}</span></div>
+    </div>`;
+  }).join('');
+
+  td.innerHTML=`
+  <div class="trace-header" onclick="toggleTrace()">
+    <div class="trace-header-left">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <span class="trace-badge">TRACE</span>
+          <span class="trace-title">Documentation de traçabilité — SMAH</span>
+        </div>
+        <div class="trace-sub">Détail complet: Agent ML · Agent NS · Module d'Agrégation</div>
+      </div>
+    </div>
+    <svg class="trace-toggle" id="trace-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+
+  <div class="trace-body" id="trace-body">
+
+    <!-- AGENT ML -->
+    <div class="tsection">
+      <div class="tsection-head agent-ml-clr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Agent ML Classique — Calcul des scores de priorité
+      </div>
+      <div class="tformule">${tML.formule||''}</div>
+      ${mlRows}
+    </div>
+
+    <!-- AGENT NS -->
+    <div class="tsection">
+      <div class="tsection-head agent-ns-clr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Agent Neuro-Symbolique — Règles SI/ALORS par jour
+      </div>
+      <div class="day-tabs">${nsTabs}</div>
+      ${nsPanels}
+    </div>
+
+    <!-- AGRÉGATION -->
+    <div class="tsection">
+      <div class="tsection-head agent-ag-clr">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Module d'Agrégation — Fusion décisions + gestion conflits
+      </div>
+      <div style="font-size:.75rem;color:var(--text2);margin-bottom:.8rem;">
+        Sources: <span class="tdec-source src-ml">ML</span> = décision ML pure &nbsp;·&nbsp;
+        <span class="tdec-source src-ns">NS</span> = règle NS &nbsp;·&nbsp;
+        <span class="tdec-source src-both">ML+NS</span> = combiné &nbsp;·&nbsp;
+        <span class="tdec-source src-agg">AGG</span> = contraint par l'Agrégation
+      </div>
+      <div class="day-tabs">${aggTabs}</div>
+      ${aggPanels}
+    </div>
+
+  </div>`;
+}
+
+function toggleTrace(){
+  const body=document.getElementById('trace-body');
+  const arrow=document.getElementById('trace-arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function switchTab(agent,idx,jour){
+  const prefix=agent==='ns'?'ns':'agg';
+  const jours=Object.keys(HEURES);
+  // update tabs
+  document.querySelectorAll(`[onclick^="switchTab('${agent}"]`).forEach((t,i)=>t.classList.toggle('active',i===idx));
+  // update panels
+  jours.forEach(j=>{
+    const p=document.getElementById(`${prefix}-panel-${j}`);
+    if(p) p.classList.toggle('active',j===jour);
+  });
+}
+
+function restart(){
+  document.getElementById('results').classList.remove('active');
+  document.getElementById('moy-prec').value='';
+  document.getElementById('moy-cible').value='';
+  ['ps1','ps2','ps3','ps4','ps5'].forEach(id=>document.getElementById(id).classList.remove('vis'));
+  goCard('step1','sd1');
+}
+</script>
+</body>
+</html>
